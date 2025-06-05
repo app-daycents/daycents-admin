@@ -1,7 +1,7 @@
 // src/utils/api.js
 import axios from "axios";
 
-const baseURL = "http://localhost:3000"; // change to your backend's actual URL
+const baseURL = "https://api-daycents-backend.vercel.app"; // change to your backend's actual URL
 
 /**
  * Universal API call helper for admin panel

@@ -50,7 +50,7 @@ const [posts, setPosts] = useState([]);
 
       const token = await localStorage.getItem('accesstoken');
 
-    const response = await axios.post('http://localhost:3000/api/categories', formData, {
+    const response = await axios.post('https://api-daycents-backend.vercel.app/api/categories', formData, {
       headers: {
         'Authorization': `Bearer ${token}`, // if required
         'Content-Type': 'multipart/form-data; boundary=---011000010111000001101001',
