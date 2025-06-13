@@ -46,13 +46,6 @@ const Login = () => {
             onChange={(e) => setEmail(e.currentTarget.value)}
             required
           />
-          <TextInput
-            label="Username"
-            placeholder="your username"
-            value={username}
-            onChange={(e) => setUsername(e.currentTarget.value)}
-            required
-          />
           <PasswordInput
             label="Password"
             placeholder="your password"

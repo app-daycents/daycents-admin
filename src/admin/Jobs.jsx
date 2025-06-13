@@ -1,4 +1,4 @@
-import { Box, Card, Text } from '@mantine/core'
+import { Box, Card, Grid, Image, Text } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import {
   TextInput,
@@ -7,6 +7,7 @@ import {
   Group,
   Title,
   Notification,
+  Switch
 } from '@mantine/core';
 import { apiRequest } from '../utils/api';
 import axios from 'axios';
@@ -19,18 +20,47 @@ const Jobs = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 const [posts, setPosts] = useState([]);
+  const [isEnabled, setIsEnabled] = useState(false);
+    const [resdata, setresdata] = useState([]);
+   const [current , setcurrent] = useState('1');
+  const [totalpages , settotalpages] = useState("0")
 
-    useEffect(()=>{
-      const fetchjobfeed = async () =>{
+const fetchjobfeed = async () =>{
         try{
-          const res = await apiRequest('GET','/api/posts',null);
-          setPosts(res.data.posts);
-          
+          const response = await apiRequest('GET',`/api/posts/?page=${current}`,null);
+           setPosts(prev => {
+  const existingIds = new Set(prev.map(post => post.id));
+  const newPosts = response.data.data || [];
+  const filteredNewPosts = newPosts.filter(post => !existingIds.has(post.id));
+  return [...prev, ...filteredNewPosts];
+});
+           settotalpages(response.data.totalPages)
         }catch(error){
           console.log("error",error.message);
         }
       }
+    useEffect(()=>{ 
       fetchjobfeed();
+    },[])
+
+
+     const loadmorepost = () => {
+  const nextPage = (parseInt(current) + 1).toString();
+  setcurrent(nextPage);
+  fetchjobfeed();
+}
+
+
+    useEffect(()=>{
+      const fetchishow =async ()=>{
+        try{
+          const res = await apiRequest('GET','/api/posts/is-show',null);
+          setIsEnabled(res.data.data.is_show);
+        }catch(error){
+          console.log("error",error)
+        }      
+      }
+      fetchishow();
     },[])
   
   const handleSubmit = async () => {
@@ -56,7 +86,6 @@ const [posts, setPosts] = useState([]);
         'Content-Type': 'multipart/form-data; boundary=---011000010111000001101001',
       },
     });
-      console.log(response.data)
       setSuccessMsg('Category added successfully!');
       setCategoryName('');
       setImage(null);
@@ -67,12 +96,47 @@ const [posts, setPosts] = useState([]);
       setLoading(false);
     }
   };
-
-  const handleDelete = (id) =>{
-
+  const handleToggle = async (checked)=> {
+    setIsEnabled(checked);
+    try{
+      const statusres = await apiRequest('PATCH','/api/posts/is-show',{
+        is_show : checked
+      });
+      console.log(statusres.data)
+    }catch(error){
+      console.log("error",error)
+    }
   }
+
+  useEffect(()=>{
+    const fetchctegory = async ()=>{
+      try {
+        const res = await apiRequest('GET','/api/categories',null);
+        const data = res.data.data;
+        setresdata(data);
+        console.log(res.data.data)
+      }catch(error){
+        console.log(error.message)
+      }
+    }
+    fetchctegory();
+  },[])
+
+  
   return (
     <Box py={20} px={40} w="100%" h="100%" bg="#fff"  style={{borderBottomRightRadius:12,borderBottomLeftRadius:12}}>
+     <Group position="left" my={15} >
+      <Title order={3} >Enable Post Feature</Title>
+      <Switch
+        checked={isEnabled}
+        onChange={(event) => handleToggle(event.currentTarget.checked)}
+        color="teal"
+        size="md"
+      />
+      {
+        isEnabled ? (<Text>post is turned on</Text>) : (<Text>Post feature is turned off</Text>)
+      }
+    </Group>
        <Title order={3} mb="md">Add New Category</Title>
 
       {successMsg && (
@@ -110,6 +174,28 @@ const [posts, setPosts] = useState([]);
           Add Category
         </Button>
       </Group>
+
+<Grid m={20} >
+      {resdata.map((category) => (
+        <Grid.Col key={category.id} span={2}>
+          <Card  shadow="sm" padding="lg" radius="md" withBorder>
+            <Card.Section m={12} >
+              <Image
+                src={category.url}
+                w={100}
+                alt={category.name}
+                fit='cover'
+              />
+            </Card.Section>
+
+            <Text ml={12} fw={500} size="lg" mt="md">
+              {category.name.replace(/"/g, "")}
+            </Text>
+          </Card>
+        </Grid.Col>
+      ))}
+    </Grid>
+
       {
   posts?.map((post) => (
     <Card withBorder radius={10} my={10} >
@@ -134,6 +220,8 @@ const [posts, setPosts] = useState([]);
     </Card>
   ))
 }
+
+<Button color='blue' onClick={loadmorepost} >Load more</Button>
 
         
     </Box>
