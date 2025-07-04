@@ -5,6 +5,7 @@ import { MantineProvider } from '@mantine/core';
 import { BrowserRouter } from 'react-router-dom';
 import Auth from './auth/Auth';
 import { ModalsProvider } from '@mantine/modals';
+import Delete from './pages/Delete';
 
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
     <ModalsProvider>
     <Routes>
       <Route path='/' element={<Auth />} /> 
+      <Route path='/delete' element={<Delete />} />
     </Routes>
     </ModalsProvider>
     </MantineProvider>

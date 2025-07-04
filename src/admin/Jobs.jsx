@@ -1,4 +1,4 @@
-import { Box, Card, Grid, Image, Text } from '@mantine/core'
+import { Box, Card, Grid, Image, Modal, Text } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import {
   TextInput,
@@ -23,7 +23,9 @@ const [posts, setPosts] = useState([]);
   const [isEnabled, setIsEnabled] = useState(false);
     const [resdata, setresdata] = useState([]);
    const [current , setcurrent] = useState('1');
-  const [totalpages , settotalpages] = useState("0")
+  const [totalpages , settotalpages] = useState("0");
+    const [selectedPost, setSelectedUser] = useState(null);
+    const [modalOpened, setModalOpened] = useState(false);
 
 const fetchjobfeed = async () =>{
         try{
@@ -114,13 +116,23 @@ const fetchjobfeed = async () =>{
         const res = await apiRequest('GET','/api/categories',null);
         const data = res.data.data;
         setresdata(data);
-        console.log(res.data.data)
       }catch(error){
         console.log(error.message)
       }
     }
     fetchctegory();
   },[])
+
+   const handleViewpost = async (postid) => {
+      try {
+        const res = await apiRequest('GET',`/api/posts/${postid}`,null)
+        console.log(res.data.data)
+        setSelectedUser(res.data.data);
+        setModalOpened(true);
+      } catch (error) {
+        console.error("Error fetching user", error);
+      }
+    };
 
   
   return (
@@ -213,8 +225,8 @@ const fetchjobfeed = async () =>{
       <Text><strong>Created At:</strong> {dayjs(post.createdAt).format('DD MMM YYYY, hh:mm A')}</Text>
 
       <Group mt="sm">
-        <Button color="blue" variant="light">View</Button>
-        <Button color="red" variant="light" onClick={() => handleDelete(post.id)}>Delete</Button>
+        <Button onClick={()=>handleViewpost(post.id)} color="blue" variant="light">View</Button>
+        <Button color="red" variant="light" >Delete</Button>
       </Group>
     </Box>
     </Card>
@@ -222,7 +234,27 @@ const fetchjobfeed = async () =>{
 }
 
 <Button color='blue' onClick={loadmorepost} >Load more</Button>
-
+ <Modal
+  opened={modalOpened}
+  onClose={() => setModalOpened(false)}
+  title="User Details"
+>
+   {selectedPost ? (
+    <>
+      <Text><b>Title:</b> {selectedPost.title}</Text>
+      <Text><b>Description:</b> {selectedPost.description}</Text>
+      <Text><b>Status:</b> {selectedPost.status}</Text>
+      <Text><b>Amount:</b> ₹{selectedPost.amount}</Text>
+      <Text><b>No. of Workers:</b> {selectedPost.no_of_workers}</Text>
+      <Text><b>Working Hours:</b> {selectedPost.working_hour}</Text>
+      <Text><b>Mobile:</b> {selectedPost.mobile_no}</Text>
+      <Text><b>Location:</b> {selectedPost.location_lat}, {selectedPost.location_long}</Text>
+      <Text><b>Job Date:</b> {new Date(selectedPost.job_date).toLocaleString()}</Text>
+    </>
+  ) : (
+    <Text>Loading...</Text>
+  )}
+</Modal>
         
     </Box>
   )
